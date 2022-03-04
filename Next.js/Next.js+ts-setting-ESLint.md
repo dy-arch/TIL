@@ -9,7 +9,7 @@ ESLint는 JavaScript, TypeScript의 코딩 스타일 도구. JS코드가 ECMAScr
 1. 일단 next를 typescript
 
 ```bash
-$npx create-next-app --typescript
+npx create-next-app --typescript
 ```
 
 - 위 링크에는 eslint를 설치해주는데 할 필요없다. 기본적으로 설치되어있다.
@@ -19,7 +19,7 @@ $npx create-next-app --typescript
 1. eslint 초기화
 
 ```bash
-$npx eslint --init
+npx eslint --init
 ```
 
 ```bash
