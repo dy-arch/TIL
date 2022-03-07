@@ -163,7 +163,7 @@ console.log(increaser()); // 2
 ## 매개변수(Parameter, 인자)
 함수의 작업 실행을 위해 추가적인 정보가 필요할 경우, 매개변수를 지정. 매개변수는 함수 내에서 변수와 동일하게 동작.
 
-### 4-1. 매개변수(parameter, 인자) vs 인수(argument)
+### 4-1 매개변수(parameter, 인자) vs 인수(argument)
 
 - 매개변수는 함수 내에서 변수와 동일하게 **메모리 공간을 확보**하며 함수에 전달한 인수는 매개변수에 할당.
 - 만약 인수를 전달하지 않으면 매개변수는 undefined로 초기화.
@@ -217,5 +217,125 @@ console.log(obj) // Object { name: 'Lee', gender: 'male' }
 
 changeVal(num, obj)
 
+// 함수가 실행된 후 원시값인 num 값은 변하지 않았지만
 console.log(num) // 100;
+// 객체는 변화했음을 알 수 있다.
 console.log(obj) // Object { name: 'Kim', gender: 'female' }
+```
+
+## 5. 함수 객체의 프로퍼티
+함수는 객체이다. 따라서 함수도 프로퍼티를 가질 수 있다.
+```js
+function square(number) {
+  return number * number;
+}
+console.log(square);
+```
+![](img/function-console.png)
+> 단, arguments 프로퍼티는 사용하지 말 것! <br>
+> arguments 프로퍼티는 현재 일부 브라우저에서 지원하고 있지만 ES3부터 표준에서 deprecated 되었다. <br>
+> Function.arguments와 같은 사용 방법은 권장되지 않으며 함수 내부에서 지역변수처럼 사용할 수 있는 arguments 객체를 참조할 것.
+
+### 5-1 arguments 프로퍼티
+
+arguments 객체는 함수 호출 시 전달된 인수(argument)들의 정보를 담고 있는 순회가능한(iterable) 유사 배열 객체(array-like object)이며 함수 내부에서 지역변수처럼 사용된다. 즉, 함수 외부에서는 사용할 수 없다.
+
+```js
+ function multiply(x, y) {
+   console.log(arguments); 
+   return x * y;
+ }
+
+// 함수 호출 시 함수 정의에 따라 인수를 전달하지 않아도 에러가 발생하지 않는다.
+ multiply();            // {}
+ multiply(1);           // { '0': 1 }
+ multiply(1, 2);        // { '0': 1, '1': 2 }
+ multiply(1, 2, 3);     // { '0': 1, '1': 2, '2': 3 }
+ ```
+
+ - 매개변수의 개수보다 인수를 적게 전달했을 때 (multiply(), multiply(1)) 인수가 전달되지 않은 매개변소는 undefined로 초기화.
+ - 매개변수의 개수보다 인수를 더 많이 전달한 경우, 초과된 인수는 무시.
+
+이러한 자바스크립트의 특성 때문에 런타임 시에 호출된 함수의 인자 개수를 확인하고 이에 따른 동작을 정의할 필요가 있을 수 있다. 이때 유용하게 사용되는 것이 arguments 객체이다.
+
+arguments 객체는 매개변수 개수가 확정되지 않은 **가변 인자 함수**를 구현할 때 유용하게 사용된다.
+```js
+function sum() {
+  let res = 0;
+
+  for (let i = 0; i < arguments.length; i++) {
+    res += arguments[i];
+  }
+
+  return res;
+}
+
+console.log(sum());           //0
+console.log(sum(1, 2));       //3
+console.log(sum(1, 2, 3));    //6
+```
+- 자바스크립트는 함수를 호출할 때 인수들과 함께 암묵적으로arguments 객체가 함수 내부로 전달.
+- 위의 예시처럼 arguments 객체는 배열의 형태로 인자값 정보를 담고 있지만 실제 배열이 아닌 **유사배열객체(array-like object)** 이다.
+- 유사배열객체란 length 프로퍼티를 가진 객체를 말하는 것으로 배열이 아니다.
+
+### 6-2 caller 프로퍼티
+
+caller 프로퍼티는 자신을 호출한 함수를 의미한다.
+```js
+function foo(func) {
+  const res = func;
+  return res;
+}
+
+function bar() {
+  return `caller : ${bar.caller}`
+}
+
+console.log(foo(bar));  // caller : function foo(func) { ... }
+console.log(bar());     // null (browser에서의 실행 결과)
+```
+
+### 6-3 length 프로퍼티
+length 프로퍼티는 함수 정의 시 작성된 매개변수 개수를 의미
+
+### 6-4 name 프로퍼티
+함수명을 나타낸다. 기명함수의 경우 함수명을 값으로 갖고 익명함수의 경우 빈문자열을 값으로 갖는다.
+
+### 6-5 &#95;&#95;proto&#95;&#95; 접근자 프로퍼티
+- 모든 객체는 [[Prototype]]이라는 내부 슬롯이 있다. [[Prototype]] 내부 슬롯은 프로토타입 객체를 가리킨다.
+- 프로토타입 객체란 프로토타입 기반 객체 지향 프로그래밍의 근간을 이루는 객체로서 객체간의 상속(Inheritance)을 구현하기 위해 사용된다.
+- 즉, 프로토타입 객체는 다른 객체에 공유 프로퍼티를 제공하는 객체이다.
+
+&#95;&#95;proto&#95;&#95; 프로퍼티는 [[Prototype]] 내부 슬롯이 가리키는 프로토타입 객체에 접근하기 위해 사용하는 접근자 프로퍼티이다. 내부 슬롯에는 직접 접근할 수 없고 간접적인 접근 방법을 제공하는 경우에 한하여 접근할 수 있다. [[Prototype]] 내부 슬롯에도 직접 접근할 수 없으며 &#95;&#95;proto&#95;&#95; 접근자 프로퍼티를 통해 간접적으로 프로토타입 객체에 접근할 수 있다.
+```js
+// __proto__ 접근자 프로퍼티를 통해 자신의 프로토타입 객체에 접근 가능
+console.log({}.__proto__ === Object.prototype); // true
+```
+
+&#95;&#95;proto&#95;&#95; 프로퍼티는 객체가 직접 소유하는 프로퍼티가 아니라 모든 객체의 프로토타입 객체인 Object.prototype 객체의 프로퍼티이다. 모든 객체는 상속을 통해 &#95;&#95;proto&#95;&#95; 접근자 프로퍼티는 사용할 수 있다.
+
+```js
+// 객체는 __proto__ 프로퍼티를 소유하지 않는다.
+console.log(Object.getOwnPropertyDescriptor({}, '__proto__'));
+// undefined
+
+// __proto__ 프로퍼티는 모든 객체의 프로토타입 객체인 Object.prototype의 접근자 프로퍼티이다.
+console.log(Object.getOwnPropertyDescriptor(Object.prototype, '__proto__'));
+// {get: ƒ, set: ƒ, enumerable: false, configurable: true}
+
+// 모든 객체는 Object.prototype의 접근자 프로퍼티 __proto__를 상속받아 사용할 수 있다.
+console.log({}.__proto__ === Object.prototype); // true
+```
+
+### 6-6 prototype 프로퍼티
+prototype 프로퍼티는 함수 객체만이 소유하는 프로퍼티이다. 즉 일반 객체에는 prototype 프로퍼티가 없다.
+
+```js
+// 함수 객체는 prototype 프로퍼티를 소유한다.
+console.log(Object.getOwnProtpertyDescriptor(function() {}, 'prototype'));
+// { value: {…}, writable: true, enumerable: false, configurable: false }
+
+// 일반 객체는 prototype 프로퍼티를 소유하지 않는다.
+console.log(Object.getOwnPropertyDescriptor({}, 'prototype'));
+// undefined
+```
