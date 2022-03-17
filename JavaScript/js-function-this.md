@@ -60,6 +60,7 @@ foo.bind(bar)();    // bar
 ```
 
 ## 1. 함수 호출
+
 - 전역객체(Global Object)는 모든 객체의 유일한 최상위 객체를 의미하며 일반적으로 Browser-side에서는 ```window```, Server-side(Node.js)에서는 ```globar``` 객체를 의미한다.
 - 전역객체는 전역 스코프(Global Scope)를 갖는 전역변수(Global variable)를 프로퍼티로 소유한다.
 - 글로벌 영역에 선언한 함수는 전역객체의 프로퍼티로 접근할 수 있는 전역 변수의 메소드이다.
