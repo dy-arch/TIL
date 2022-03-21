@@ -320,3 +320,111 @@ console.log(a.value);   // 100
 console.log(b.value);   // 10
 ```
 
+## 4. apply/call/bind 호출
+
+this에 바인딩될 객체는 함수 호출 패턴에 의해 결정된다. 이는 자바스크립트 엔진이 수행하는 것이다. 이러한 암묵적 this 바인딩 이외에 this를 특정 객체에 명시적을 바인딩하는 방법도 제공된다. Function.prototype 객체의 apply, call 메소드가 그 예이다.
+
+**apply**
+```js
+const Person = function (name) {
+  this.name = name;
+};
+
+const foo = {};
+
+// apply 메소드는 생성자함수 Person을 호출한다. 이때 this에 객체 foo를 바인딩한다.
+Person.apply(foo, ['name']);
+
+console.log(foo); // { name: 'name' }
+```
+- apply() 메소드를 호출하는 주체는 함수이며 apply() 메소드는 this를 특정 객체에 바인딩할 뿐 본질적인 기능은 함수 호출이다.
+- 빈 객체 foo를 apply() 메소드의 첫 번째 매개변수로, argument의 배열을 두 번째 매개변수에 전달했다.
+- 이때 Person 함수의 this는 foo 객체가 된다.
+- foo 객체에는 name 프로퍼티가 없기 때문에 동적 추가되고 값이 할당된다.
+
+```js
+function convertArgsToArray() {
+  console.log(arguments);
+
+  // arguments 객체를 배열로 변환
+  // slice: 배열의 특정 부분에 대한 복사본을 생성한다.
+  const arr = Array.prototype.slice.apply(argumetns); // arguments.slice
+  // const arr = [].slice.apply(arguments);
+
+  console.log(arr);
+  return aa;
+}
+
+convertArgsToArray(1, 2, 3);
+```
+- apply() 메소드의 대표적인 용도는 arguments 객체와 같은 유사 배열 객체에 배열 메소드를 사용하는 경우이다.
+
+**call**
+```js
+Person.call(foo, 1, 2, 3);
+```
+- call() 메소드의 경우 apply()와 달리 배열 형태의 인자가 아닌 각각 하나의 인자로 넘긴다.
+
+```js
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.doSomething = function(callback) {
+  if (typeof callback = 'function') {
+    // ------------ 1
+    callback();
+  }
+};
+
+function foo() {
+  console.log(this.name); // ---------- 2
+}
+
+const p = new Person('Lee');
+p.doSomething(foo); // undefined
+```
+- 1의 시점에서 this는 Person 객체이다. 하지만 2의 시점에서 this는 전역 객체 window를 가리킨다.
+- 콜백함수를 호출하는 doSomething 내부 this와 콜백함수 내부의 this가 바인딩하는 객체가 다르다.
+
+```js
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.doSomething = function (callback) {
+  if (typeof callback = 'function') {
+    callback.call(this);
+  }
+};
+
+function foo() {
+  console.log(this.name);
+}
+
+const p = new Person('Lee');
+p.doSomething(foo);  // 'Lee'
+```
+- 콜백 함수와 doSomething 메소드의 this를 call 메소드를 통해 같은 객체로 바인딩하였다.
+
+**bind**
+
+```js
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.doSomething = function(callback) {
+  if (typeof callback === 'function') {
+    callback.bind(this)();
+  }
+};
+
+function foo() {
+  console.log(this.name);
+}
+
+const p = new Person('Lee');
+p.doSomething(foo); // 'Lee'
+```
+- bind는 apply, call 메소드와 달리 인자로 전달된 객체가 바인딩된 **새로운 함수**를 호출한다.
