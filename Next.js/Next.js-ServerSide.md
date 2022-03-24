@@ -111,6 +111,7 @@ export default Home;
 **빌드**
 
 ![isr 적용후](img/isr_after.png)
+- 빌드 후 (ISR: 10 Seconds) 부분이 추가되었음을 알 수 있다.
 
 > 참고 <br>
 > [longroadhome.log - 벨로그](https://velog.io/@longroadhome/FE-SSRServer-Side-Rendering-%EA%B7%B8%EB%A6%AC%EA%B3%A0-SSGStatic-Site-Generation-feat.-NEXT%EB%A5%BC-%EC%A4%91%EC%8B%AC%EC%9C%BC%EB%A1%9C) <br>
