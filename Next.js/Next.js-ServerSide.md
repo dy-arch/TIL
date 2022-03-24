@@ -12,7 +12,7 @@ SSR은 말 그대로 Server Side Rendering '서버 단의 렌더링'을 말한�
 ### **SSR은 페이지가 바뀌면 화면이 깜빡이는게 아닌가?**
 Next.js를 실행해서 페이지를 이동해보면 기존의 React처럼 매끄러운 화면 이동이 일어난다. 그 이유는 Next.js가 페이지 이동마다 HTML파일을 서버에서 렌더링해서 주는 것이 아니고 첫 로딩 이후로는 CSR방식을 사용하기 때문이다. 즉 CSR방식의 기존 React에서 첫 로딩이 느리다는 것과 SEO의 단점만을 해결하기 위해 SSR의 장점만을 CSR에 합친 것이다. 앞으로는 SSR = MPA 라는 생각을 지워버리자.
 
-## **그럼 SSG는 뭘까**
+### 그럼 SSG는 뭘까
 공식문서에서는 다음과 같이 설명하고 있다.
 - 정적 사이트 생성을 하게 되면 HTML이 서버에서 생성되지만 SSR과 달리 런타임시 서버에 없다.
 - 대신 컨텐츠는 어플리케이션이 배포, HTML이 CDN에 저장되고 각 요청에 재사용될 때 빌드시에 한 번 생성된다.
@@ -34,11 +34,86 @@ SSG는 위에서 빌드시에 HTML을 미리 생성한다고 설명했다. 즉 �
 
 라고 언급 하는데, SSG관련 메소드를 사용하지 않아도 default로 SSG로 빌드 되는 듯 하다.
 
+### 빌드 이후 요청 데이터가 변화가 있다면?
+위에서 설명했듯이 SSG의 방식은 빌드시에만 데이터를 받아 html을 미리 생성해두는 것이다. 그렇다면 프로덕션에서 빌드 이후 데이터가 변한다면 서버측에서 다시 빌드해야 할까?
 
+이에 대한 답은 공식문서에 있다. (~~영어가 힘들어 공식문서를 멀리 했더니 고생만 했다. 공식문서를 가까이 하자..~~) <br>
+SSG를 위한 데이터 요청 API로 **getStaticProps**가 있다. 해당 API를 사용하여 데이터를 요청하게 되면 빌드시에 데이터를 요청해 Pre-Rendering하는 데 사용된다. 사용 방법은 아래와 같다.
+```tsx
+// page/index.tsx
 
+import axios from "axios";
+import type { GetStaticProps } from "next";
+import { Landing } from "containers/Landing";
 
+interface landingData {
+  data: {
+    ...
+  };
+}
+
+function Home({ data }: landingData) {
+  return <Landing article={data} />;
+}
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const res = await axios.get("/todays/article");
+  return { props: { 
+      data: res.data 
+    } 
+  };
+};
+
+export default Home;
+``` 
+**빌드**
+
+![isr 적용전](img/isr_before.png)
+
+공식 문서를 살펴보게 되면 아래와 같이 설명하고 있다.
+> getStaticProps 함수는 'props', 'redirect', 'notFound'와 선택적 'revalidate' 속성을 포함하는 객체를 반환해야 한다.
+
+여기서 우리가 주목해야 하는 것은 'revalidate' 속성이다. 'revalidate' 속성은 페이지 재생성이 발생할 수 있는 시간이다. <br>
+나의 의문에 대한 해결책을 Next는 Incremental Static Regeneration(증분 정적 재생)이라고 한다. ISR은 'revalidate' 속성에 기입한 시간(초)마다 데이터의 최신 여부를 검사하고 만약 데이터의 변화가 있다면 업데이트된 데이터롤 페이지를 다시 생성한다. 아래의 코드를 보자.
+
+```tsx
+// page/index.tsx
+
+import axios from "axios";
+import type { GetStaticProps } from "next";
+import { Landing } from "containers/Landing";
+
+interface landingData {
+  data: {
+    ...
+  };
+}
+
+function Home({ data }: landingData) {
+  return <Landing article={data} />;
+}
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const res = await axios.get("/todays/article");
+  return { props: { 
+      data: res.data 
+    },
+    revalidate: 10,
+  };
+};
+
+export default Home;
+```
+1. 빌드 시 사전 렌더링된 페이지에 대한 요청이 이루어지면 처음에는 캐시된 페이지가 표시된다.
+2. 초기 요청 후와 10초 전에는 캐시되어 있는 페이지가 표시된다.
+3. 10초 후 데이터의 변화를 판단해 변화되었다면 페이지를 재생성하고 그렇지 않다면 아무런 변화가 없다.
+
+**빌드**
+
+![isr 적용후](img/isr_after.png)
 
 > 참고 <br>
 > [longroadhome.log - 벨로그](https://velog.io/@longroadhome/FE-SSRServer-Side-Rendering-%EA%B7%B8%EB%A6%AC%EA%B3%A0-SSGStatic-Site-Generation-feat.-NEXT%EB%A5%BC-%EC%A4%91%EC%8B%AC%EC%9C%BC%EB%A1%9C) <br>
 > [Parkgang Dev Log](https://parkgang.github.io/next.js/lets-properly-understand-and-use-the-ssg-of-next.js/)<br>
 > [thisiscoke Tistory](https://thisiscoke.tistory.com/entry/Nextjs-%EA%B3%B5%EC%8B%9D%EB%AC%B8%EC%84%9C-%EC%82%B4%ED%8E%B4%EB%B3%B4%EA%B8%B01-%ED%95%98%EC%9D%B4%EB%B8%8C%EB%A6%AC%EB%93%9C-%EC%95%B1-SSR-SSG-CSR)<br>
+> [Next.js 공식](https://nextjs.org/docs)
