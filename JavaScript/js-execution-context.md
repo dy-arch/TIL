@@ -187,7 +187,7 @@ function foo() {
 1. 환경 레코드(Environment Record)
 - 스코프에 포함된 식별자를 등록하고 등록된 식별자에 바인딩된 값을 관리하는 저장소다.
 - 환경 레코드는 소스코드의 타입에 따라 관리하는 내용에 차이가 있다.
-1. 외부 렉시컬 환경에 대한 참조(Outer Lexical Environment Reference)
+2. 외부 렉시컬 환경에 대한 참조(Outer Lexical Environment Reference)
 - 외부 렉시컬 환경에 대한 참조는 상위 스코프를 가리킨다.
 - 외부 렉시컬 환경에 대한 참조를 통해 단방향 링크드 리스트인 스코프 체인을 구현한다.
 
@@ -195,3 +195,61 @@ function foo() {
 - 실행 컨텍스트는 LexicalEnvironment 컴포넌트와 VariableEnvironment 컴포넌트로 구성된다.
 - 생성 초기 LexicalEnvironment 컴포넌트와 VariableEnvironment 컴포넌트는 하나의 동일한 렉시컬 환경을 참조한다.
 - 이후 몇 가지 상황을 만나면 LexicalEnvironment 컴포넌트와 VariableEnvironment 컴포넌트 내용이 달라지는 경우도 있다.
+
+## 6. 실행 컨텍스트의 생성과 식별자 검색 과정
+
+```js
+var x = 1;
+const y = 2;
+
+function foo(a) {
+  var x = 3;
+  const y = 4;
+
+  function bar(b) {
+    const z = 5;
+    console.log(a + b + x + y + z);
+  }
+  bar(10);
+}
+
+foo(20); //42
+```
+
+### 1. 전역 객체 생성
+- 전역 객체는 전역 코드가 평가되기 이전에 생성
+- 전역 객체에는 빌트인 전역 프로퍼티와 빌트인 전역 함수, 그리고 표준 빌트인 객체 추가가 추가, 동작 환경에 따라 클라이언트 사이드 Web API(DOM, BOM, Canvas 등) 또는 특정 환경을 위한 호스트 객체가 포함.
+- 전역 객체도 Object.prototype을 상속받는다. 즉, 전역 객체도 프로토타입 체인의 일원.
+
+```js
+// Object.prototype.toString
+window.toString();
+
+window.__proto__.__proto__.__proto__.__proto__ === Object.prototype; // true
+```
+
+### 2. 전역 코드 평가
+
+1. **전역 실행 컨텍스트 생성**
+
+    비어있는 전역 실행 컨텍스트를 생성하여 실행 컨텍스트 스택에 푸시한다.
+
+2. **전역 렉시컬 환경 생성**
+
+    전역 렉시컬 환경을 생성하고 전역 실행 컨텍스트에 바인딩한다. 위에서 언급했듯 렉시컬 환경은 환경 레코드(Environment Record)와 외부 렉시컬 환경에 대한 참조(OuterLexicalEnvironmentRefernce)로 구성된다.
+
+    **2-1 전역 환경 레코드 생성**
+    - 전역 환경 레코드(Global Environment Record)는 전역 변수를 관리하는 전역 스코프, 전역 객체의 빌트인 전역 프로퍼티와 빌트인 전역 함수, 표준 빌트인 객체를 제공한다.
+    - 기존의 var 키워드, ES6의 let, const 키워드를 구분하기 위해 전역 환경 레코드는 **객체 환경 레코드(Object Environment Record)** 와 **선언적 환경 레코드(Declarative Environment Record)** 로 구성되어 있다.
+
+      **2-1.1 객체 환경 레코드 생성**
+      - 객체 환경 레코드는 BindingObject라고 부르는 객체와 연결된다. BindingObject는 "전역 객체 생성"에서 생성된 전역 객체다.
+      - var 키워드로 선언한 전역 변수와 함수 선언문으로 정의된 전역 함수는 전연 환경 레코드의 객체 환경 레코드에 연결된 BindingObject를 통해 전역 객체의 프로퍼티와 메서드가 된다.
+      ```js
+      var x = 1;
+      const y = 2;
+
+      function foo(a) {
+      ...        
+      ```
+      ![객체환경레코드](img/object_environment_record.png)
