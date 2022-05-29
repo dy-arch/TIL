@@ -24,6 +24,7 @@ const Something: React.FC<props> = ({ name }) => {
   
 확인을 위해 직접 코드를 통해 테스트 해보았지만 children이 존재하지 않았다.
 ![children이 없는 사진](../img/no-children.png)
+
 궁금해서 구글링 한 결과 현재는 FC에 children type이 빠져있어서 직접 type을 직접 정의해주어야 한다고 한다. 때문에 이 점은 장점이 될 수 없다.<br>
 [stackoverflow 참고](https://stackoverflow.com/questions/71788254/react-18-typescript-children-fc)
 
